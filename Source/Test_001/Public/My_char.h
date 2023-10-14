@@ -2,9 +2,12 @@
 
 #pragma once
 
+//헤더에서 include 시 무조건 맨아래에 클래스명.generated.h가 와야함
+
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "My_char.generated.h"
+
 
 UCLASS()
 class TEST_001_API AMy_char : public ACharacter
@@ -63,6 +66,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	TSubclassOf<class AActor> bullet_bp;
 
+	//UFUNCTION(BlueprintCallable, DisplayName = "MY LT") // 실행핀 있음
+	UFUNCTION(BlueprintPure) // 실행핀 없음
+	bool MyLineTraceMultiByChannel(TArray<struct FHitResult>& _hitinfos, const FVector _start, const FVector _end, enum ECollisionChannel _Ecc);
+
 
 private:
 	//Transform 관련은 CoreMinimal.헤더에서 이미 class인지 struct인지 전방선언 되어있어 생략가능하지만 이 외에는 알 수 없기에 전방선언 해줘야함.
@@ -77,6 +84,8 @@ private:
 	void DashON();
 	void DashOFF();
 	void OnFireInput(const struct FInputActionValue& value);
+
+	
 
 	// 모듈을 열려면 솔류션에서 Build.cs에서 해야됨
 

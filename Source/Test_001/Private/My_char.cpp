@@ -7,7 +7,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include <GameFramework/CharacterMovementComponent.h>
-#include <BulletActor.h>
+#include "BulletActor.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 AMy_char::AMy_char()
@@ -92,6 +93,9 @@ void AMy_char::BeginPlay()
 		}
 
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("%s(%d)Copile Test"),*FString(__FUNCTION__),__LINE__);
+	UE_LOG(LogTemp, Warning, TEXT("Live Coding"));
 	
 
 }
@@ -185,7 +189,7 @@ void AMy_char::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		enhancedInputComponent->BindAction(ia_Dash, ETriggerEvent::Started, this, &AMy_char::DashON);
 		enhancedInputComponent->BindAction(ia_Dash, ETriggerEvent::Completed, this, &AMy_char::DashOFF);
 
-		//
+		//fire
 		enhancedInputComponent->BindAction(ia_Fire, ETriggerEvent::Started, this, &AMy_char::OnFireInput);
 	}
 
@@ -228,7 +232,7 @@ void AMy_char::DashOFF()
 void AMy_char::OnFireInput(const FInputActionValue& value)
 {
 	
-	//1. 블루프린트 파일 생성
+	//1. 블루프린트 총알 생성 및 발사
 	/*
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -238,13 +242,14 @@ void AMy_char::OnFireInput(const FInputActionValue& value)
 	
 
 
-	//2. 코드로 생성
+	//2. 코드로 총알 생성 및 발사
 
+	/*
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	ABulletActor* spawnBullet = GetWorld()->SpawnActor<ABulletActor>(bullet_bp, GunMeshComp->GetSocketLocation(FName("Muzzle")), GunMeshComp->GetSocketRotation(FName("Muzzle")), params);
-	/*
+
 	if(spawnBullet != nullptr)
 	{
 		spawnBullet->StaticMeshComp->SetWorldScale3D(FVector(1f, 1f, 1f)); 이것도 가능함
@@ -253,6 +258,84 @@ void AMy_char::OnFireInput(const FInputActionValue& value)
 	*/
 	
 
+
+	FVector startLoc = GunMeshComp->GetSocketLocation(FName("Muzzle"));
+	FVector endLoc = startLoc + GunMeshComp->GetRightVector() * 1000.0f;
+	FCollisionQueryParams params;
+	params.AddIgnoredActor(this);
+
+
+	//3. 라인트레이스로 발사하기 - 싱글 (라인트레이스는 월드 기준으로 발사하기때문에 월드 기준의 백터 사용)
+	/*
+	FHitResult hitInfo;
+	bool bhit =  GetWorld()->LineTraceSingleByChannel(hitInfo, startLoc, endLoc, ECollisionChannel::ECC_Visibility,params);
+
+	if (bhit)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *hitInfo.GetActor()->GetActorNameOrLabel());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No hit"));
+	}
+	*/
+
+	//4. 라인트레이스 멀티
+	TArray<FHitResult> hitinfos;
+	
+	
+	bool bhit = GetWorld()->LineTraceMultiByChannel(hitinfos, startLoc, endLoc, ECC_Visibility, params);
+	
+	
+	if (bhit)
+	{
+		for (FHitResult hitinfo : hitinfos)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *hitinfo.GetActor()->GetActorNameOrLabel());
+			
+		}
+		FVector hitLoc = hitinfos[0].ImpactPoint;
+
+		DrawDebugLine(GetWorld(), startLoc, hitLoc, FColor::Red, false, 2.0f, 0, 1.0f);
+		DrawDebugLine(GetWorld(), hitLoc, endLoc, FColor::Green, false, 2.0f, 0, 1.0f);
+		DrawDebugBox(GetWorld(), hitLoc, FVector(5), FQuat::Identity, FColor::Red, false, 2.0f, 0, 2.0f);
+
+
+	}
+	else
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("No hit"));
+		DrawDebugLine(GetWorld(), startLoc, endLoc, FColor::Green, false, 2.0f, 0, 1.0f);
+	}
+
+	
+}
+
+
+//블루 프린트 노드로 사용할 함수
+bool AMy_char::MyLineTraceMultiByChannel(TArray<FHitResult>& _hitinfos, const FVector _start, const FVector _end, ECollisionChannel _Ecc)
+{
+	FCollisionQueryParams params;
+	params.AddIgnoredActor(this);
+	bool bhit = GetWorld()->LineTraceMultiByChannel(_hitinfos, _start, _end, _Ecc, params);
+
+
+	if (bhit)
+	{
+		FVector hitLoc = _hitinfos[0].ImpactPoint;
+
+		DrawDebugLine(GetWorld(), _start, hitLoc, FColor::Red, false, 2.0f, 0, 1.0f);
+		DrawDebugLine(GetWorld(), hitLoc, _end, FColor::Green, false, 2.0f, 0, 1.0f);
+		DrawDebugBox(GetWorld(), hitLoc, FVector(5), FQuat::Identity, FColor::Red, false, 2.0f, 0, 2.0f);
+	}
+	else
+	{
+		DrawDebugLine(GetWorld(), _start, _end, FColor::Green, false, 2.0f, 0, 1.0f);
+	}
+
+
+
+	return bhit;
 
 
 }
