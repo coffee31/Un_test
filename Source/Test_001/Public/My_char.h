@@ -58,7 +58,14 @@ public:
 	class UInputAction* ia_rotate;
 
 	UPROPERTY(EditAnywhere, Category = MySetting)
+	class UInputAction* ia_Crouch;
+
+	UPROPERTY(EditAnywhere, Category = MySetting)
 	class UInputAction* ia_Dash;
+
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	class UInputAction* ia_Thorw;
+
 
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	class UInputAction* ia_Fire;
@@ -66,9 +73,23 @@ public:
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	TSubclassOf<class AActor> bullet_bp;
 
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	class UParticleSystem* hit_fx;
+
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	class USoundBase* fire_sound;
+
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	TSubclassOf<class AGranadeActor> Granade_bp;
+
 	//UFUNCTION(BlueprintCallable, DisplayName = "MY LT") // 실행핀 있음
 	UFUNCTION(BlueprintPure) // 실행핀 없음
 	bool MyLineTraceMultiByChannel(TArray<struct FHitResult>& _hitinfos, const FVector _start, const FVector _end, enum ECollisionChannel _Ecc);
+
+	//call funtion에 만든 함수가 생김
+
+
+
 
 
 private:
@@ -83,6 +104,10 @@ private:
 	void OnRotateInput(const struct FInputActionValue& value);
 	void DashON();
 	void DashOFF();
+	void CrouchON();
+	void CrouchOFF();
+	void ONThrow();
+
 	void OnFireInput(const struct FInputActionValue& value);
 
 	
