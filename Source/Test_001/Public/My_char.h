@@ -66,12 +66,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	class UInputAction* ia_Thorw;
 
-
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	class UInputAction* ia_Fire;
 
 	UPROPERTY(EditAnywhere, Category = MySetting)
-	TSubclassOf<class AActor> bullet_bp;
+	class UInputAction* ia_Zoom;
+
 
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	class UParticleSystem* hit_fx;
@@ -80,7 +80,18 @@ public:
 	class USoundBase* fire_sound;
 
 	UPROPERTY(EditAnywhere, Category = MySetting)
+	class UAnimMontage* Fire_motage;
+
+
+	UPROPERTY(EditAnywhere, Category = MySetting)
 	TSubclassOf<class AGranadeActor> Granade_bp;
+
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	TSubclassOf<class UCameraShakeBase> Shake_bp;
+
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	TSubclassOf<class AActor> bullet_bp;
+
 
 	//UFUNCTION(BlueprintCallable, DisplayName = "MY LT") // 실행핀 있음
 	UFUNCTION(BlueprintPure) // 실행핀 없음
@@ -88,15 +99,17 @@ public:
 
 	//call funtion에 만든 함수가 생김
 
-
+	FVector moveDir;
 
 
 
 private:
 	//Transform 관련은 CoreMinimal.헤더에서 이미 class인지 struct인지 전방선언 되어있어 생략가능하지만 이 외에는 알 수 없기에 전방선언 해줘야함.
-	FVector moveDir;
+
 	FRotator rotateAxis;
 	class APlayerController* pc;
+
+	float fov = 90.0f;
 
 	//백터와 같이 특정한 애들 제외하곤 class 또는 Struct 및 기타 등등을 전방선언 해야함.
 
@@ -107,6 +120,8 @@ private:
 	void CrouchON();
 	void CrouchOFF();
 	void ONThrow();
+	void ZoomIn();
+	void ZoomOut();
 
 	void OnFireInput(const struct FInputActionValue& value);
 

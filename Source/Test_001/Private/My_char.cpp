@@ -166,6 +166,10 @@ void AMy_char::Tick(float DeltaTime)
 
 	SpringArmComp->SetWorldRotation(ModifiedRot); //수정된 로테이션을 SetWroldRotation으로 함.
 
+
+	//카메라를 fov값으로 서서히 변경
+	CameraComp->FieldOfView = FMath::Lerp(CameraComp->FieldOfView, fov, DeltaTime * 5);
+
 	
 
 }
@@ -204,9 +208,14 @@ void AMy_char::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 		//fire
 		enhancedInputComponent->BindAction(ia_Fire, ETriggerEvent::Started, this, &AMy_char::OnFireInput);
+		enhancedInputComponent->BindAction(ia_Fire, ETriggerEvent::Triggered, this, &AMy_char::OnFireInput);
 
 		//Throw
 		enhancedInputComponent->BindAction(ia_Thorw, ETriggerEvent::Completed, this, &AMy_char::ONThrow);
+
+		//Zoom
+		enhancedInputComponent->BindAction(ia_Zoom, ETriggerEvent::Started, this, &AMy_char::ZoomIn);
+		enhancedInputComponent->BindAction(ia_Zoom, ETriggerEvent::Completed, this, &AMy_char::ZoomOut);
 	}
 
 }
@@ -271,8 +280,23 @@ void AMy_char::ONThrow()
 		FVector Throwdir = (GetActorForwardVector() + GetActorUpVector()).GetSafeNormal();
 		grande_inst->SphereCollision->AddImpulse(Throwdir * 2000);
 	}
+	
+
 	//2. 수류탄 대각선 45도로 발사
 }
+
+void AMy_char::ZoomIn()
+{
+	SpringArmComp->TargetArmLength = -75.0f;
+	fov = 45.0f;
+}
+
+void AMy_char::ZoomOut()
+{
+	SpringArmComp->TargetArmLength = 500.0f;
+	fov = 90.0f;
+}
+
 
 void AMy_char::OnFireInput(const FInputActionValue& value)
 {
@@ -384,7 +408,22 @@ else
 
 #pragma endregion
 	UGameplayStatics::PlaySound2D(GetWorld(), fire_sound, 0.3f);
+	/*
+	// 카메라 쉐이킹
 
+	if (pc != nullptr && Shake_bp != nullptr)
+	{
+		pc->ClientStartCameraShake(Shake_bp);
+	}
+
+
+	// 카메라 페이드
+
+	pc->PlayerCameraManager->StartCameraFade(0, 1.0f, 1.0f, FLinearColor(1, 1, 1), true);
+	*/
+
+	// 총 발사 애니메이션 플레이
+	PlayAnimMontage(Fire_motage);
 	
 }
 
