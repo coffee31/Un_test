@@ -14,6 +14,7 @@ enum class EEnemyState
 	MOVE,
 	ATTACK,
 	ATTACKDELAY,
+	RETURN,
 	HIT,
 	DIE,
 };
@@ -47,11 +48,31 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MySetting)
 	EEnemyState enemyState = EEnemyState::IDLE;
 
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	float KnockBackRange = 50.0f;
+
+
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	int32 maxHP = 100;
+
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	class AActor* StartObject;
+
+	void OnDamager(int32 Damage);
+	FORCEINLINE int32 GetCurrentHP() { return CurrentHP; };
+
+
 
 private:
+	int32 CurrentHP = 0;
+
+	FVector KnockBackLocation;
+
 	UPROPERTY() // 사용자 정의 클래스를 언리얼에서 빠르게 읽어 들이기 위한 프로퍼티
 	class AMy_char* player;
 	
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	class AActor* target;
 
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	class USkeletalMeshComponent* SkelMesh;
@@ -68,11 +89,23 @@ private:
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	float AttackDistance = 150.0f;
 
+	UPROPERTY(EditAnywhere, Category = MySetting, meta=(AllowPrivateAccess = true))
+	float AttackPower = 100;
+
+	float attackDelay = 0;
+
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	float returnDistance = 3000.0f;
+
+	FVector StartLotation;
+	FRotator StartRotation;
+
 	void IdleAction();
 	void MoveActiodn();
 	void AttackAction();
 	void AttackDelayAction();
 	void HitAction();
 	void DieAction();
-
+	void ReRotate();
+	void Attatcking();
 };

@@ -104,6 +104,7 @@ void AMy_char::BeginPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("%s(%d)Copile Test"),*FString(__FUNCTION__),__LINE__);
 	UE_LOG(LogTemp, Warning, TEXT("Live Coding"));
+	Hp = MaxHp;
 	
 
 	// Collision Respawn 변경(충돌 방식 변경) // 우리가 만든 프리셋은 config에 있음 코드에선 GameTraceChannel로 해야됨 -> 1234 등 순서는 config보고 맞추면됨
@@ -427,6 +428,11 @@ else
 	
 }
 
+
+void AMy_char::DamagePlayer(int32 damage)
+{
+	Hp = FMath::Max(0, Hp - damage);
+}
 
 //블루 프린트 노드로 사용할 함수
 bool AMy_char::MyLineTraceMultiByChannel(TArray<FHitResult>& _hitinfos, const FVector _start, const FVector _end, ECollisionChannel _Ecc)
