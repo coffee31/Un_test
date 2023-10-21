@@ -106,7 +106,7 @@ void AMy_char::BeginPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("%s(%d)Copile Test"),*FString(__FUNCTION__),__LINE__);
 	UE_LOG(LogTemp, Warning, TEXT("RePushMain"));
-	UE_LOG(LogTemp, Warning, TEXT("Time"));
+	UE_LOG(LogTemp, Warning, TEXT("Time : today"));
 	Hp = MaxHp;
 	
 
