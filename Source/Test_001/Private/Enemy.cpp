@@ -42,15 +42,37 @@ void AEnemy::BeginPlay()
 	Super::BeginPlay();
 	
 	// 월드에 있는 플레이어 캐릭터를 찾는다.
-	AActor* playerActor = UGameplayStatics::GetActorOfClass(GetWorld(), AMy_char::StaticClass());
-	player = Cast<AMy_char>(playerActor);
+	//AActor* playerActor = UGameplayStatics::GetActorOfClass(GetWorld(), AMy_char::StaticClass());
+
+	TArray<AActor*> charters;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACharacter::StaticClass(), charters);
+
+	if (charters.Num() > 0)
+	{
+		for (AActor* playerActor : charters)
+		{
+			player = Cast<AMy_char>(playerActor);
+			if (player != nullptr)
+			{
+				target = player;
+				break;
+			}
+			else
+			{
+				bp_player = Cast<ACharacter>(playerActor);
+				if (bp_player != nullptr)
+				{
+					target = bp_player;
+					break;
+				}
+			}
+		}
+	}
+
 	StartLotation = GetActorLocation();
 	StartRotation = GetActorRotation();
+	
 
-	if (player != nullptr)
-	{
-		target = player;
-	}
 
 	//체력
 	CurrentHP = maxHP;
@@ -79,7 +101,7 @@ void AEnemy::Tick(float DeltaTime)
 		HitAction();
 		break;
 	case EEnemyState::DIE:
-		DieAction();
+		//DieAction();
 		break;
 	case EEnemyState::RETURN:
 		//MoveActiodn();
@@ -92,8 +114,19 @@ void AEnemy::Tick(float DeltaTime)
 void AEnemy::OnDamager(int32 Damage)
 {
 	CurrentHP = FMath::Max(0, CurrentHP - Damage);
-	KnockBackLocation = GetActorLocation() + GetActorForwardVector() * -1 * KnockBackRange;
-	enemyState = EEnemyState::HIT;
+
+	if (CurrentHP <= 0)
+	{
+		enemyState = EEnemyState::DIE;
+		DieAction();
+	}
+	else
+	{
+		KnockBackLocation = GetActorLocation() + GetActorForwardVector() * -1 * KnockBackRange;
+		enemyState = EEnemyState::HIT;
+	}
+
+
 }
 
 void AEnemy::IdleAction()
@@ -104,14 +137,29 @@ void AEnemy::IdleAction()
 	if (player != nullptr)
 	{
 		FVector dirvec = player->GetActorLocation() - GetActorLocation();
-		
 
 		float reslut = FVector::DotProduct(GetActorForwardVector(), dirvec.GetSafeNormal());
-
+		//
 		if (reslut >= 0 && dirvec.Length() < 1000.0f && player->GetCurrentHP() > 0)
 		{
 			target = player;
 			enemyState = EEnemyState::MOVE;
+		}
+
+	}
+	else
+	{
+		if (bp_player != nullptr)
+		{
+			FVector dirvec = bp_player->GetActorLocation() - GetActorLocation();
+
+			float reslut = FVector::DotProduct(GetActorForwardVector(), dirvec.GetSafeNormal());
+			//
+			if (reslut >= 0 && dirvec.Length() < 1000.0f)
+			{
+				target = bp_player;
+				enemyState = EEnemyState::MOVE;
+			}
 		}
 	}
 
@@ -164,17 +212,23 @@ void AEnemy::AttackAction()
 	// 딜레이 주는 방법은 2가지
 	// 위의 타이머 방법
 	// 거리 체크
-	if (FVector::Distance(player->GetActorLocation(), GetActorLocation()) >= AttackDistance)
+
+	if (player != nullptr)
 	{
-		enemyState = EEnemyState::MOVE;
-		return;
+		if (FVector::Distance(player->GetActorLocation(), GetActorLocation()) >= AttackDistance)
+		{
+			enemyState = EEnemyState::MOVE;
+			return;
+		}
+		// 2. 상태 전환을 이용한 방법
+		enemyState = EEnemyState::ATTACKDELAY;
+		Attatcking();
 	}
+
 
 	 
 	
-	// 2. 상태 전환을 이용한 방법
-	enemyState = EEnemyState::ATTACKDELAY;
-	Attatcking();
+
 }
 
 void AEnemy::AttackDelayAction()
@@ -191,7 +245,7 @@ void AEnemy::AttackDelayAction()
 
 void AEnemy::HitAction()
 {
-	FVector newLoc = FMath::Lerp(GetActorLocation(), KnockBackLocation, 0.5f);
+	FVector newLoc = FMath::Lerp(GetActorLocation(), KnockBackLocation, 0.3f);
 
 	if (FVector::Distance(newLoc, GetActorLocation()) < 5)
 	{
@@ -208,6 +262,16 @@ void AEnemy::HitAction()
 
 void AEnemy::DieAction()
 {
+	// 3초뒤 제거
+	FTimerHandle dieTimer;
+	//GetWorld()->GetTimerManager(); 액터가 존재해야함
+
+	GetWorldTimerManager().SetTimer(dieTimer, this, &AEnemy::DestroyProcess, 3.0f, false);
+	
+	//캡슐 콜리전 off
+	Capsulecomp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+
 
 }
 
@@ -239,5 +303,10 @@ void AEnemy::Attatcking()
 	{
 		enemyState = EEnemyState::RETURN;
 	}
+}
+
+void AEnemy::DestroyProcess()
+{
+	Destroy();
 }
 

@@ -95,6 +95,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	int32 MaxHp = 200;
 
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	TSubclassOf<class UMainUserWidget> mainWidget;
+
+
+
 	void DamagePlayer(int32 damage);
 	FORCEINLINE int32 GetCurrentHP() { return Hp; };
 
@@ -112,10 +117,12 @@ public:
 private:
 	//Transform 관련은 CoreMinimal.헤더에서 이미 class인지 struct인지 전방선언 되어있어 생략가능하지만 이 외에는 알 수 없기에 전방선언 해줘야함.
 	int32 Hp = 0;
-	int32 atkdmg = 50;
+	int32 atkdmg = 1;
 
 	FRotator rotateAxis;
 	class APlayerController* pc;
+
+	class UMainUserWidget* mainwidget_inst;
 
 	float fov = 90.0f;
 
