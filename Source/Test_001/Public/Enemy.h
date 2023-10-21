@@ -58,10 +58,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	class AActor* StartObject;
 
-	UFUNCTION(BlueprintCallable)
 	void OnDamager(int32 Damage);
-
-	UFUNCTION(BlueprintCallable)
 	FORCEINLINE int32 GetCurrentHP() { return CurrentHP; };
 
 
@@ -73,9 +70,6 @@ private:
 
 	UPROPERTY() // 사용자 정의 클래스를 언리얼에서 빠르게 읽어 들이기 위한 프로퍼티
 	class AMy_char* player;
-
-	UPROPERTY() // 사용자 정의 클래스를 언리얼에서 빠르게 읽어 들이기 위한 프로퍼티
-	class ACharacter* bp_player;
 	
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	class AActor* target;
@@ -114,6 +108,4 @@ private:
 	void DieAction();
 	void ReRotate();
 	void Attatcking();
-
-	void DestroyProcess();
 };

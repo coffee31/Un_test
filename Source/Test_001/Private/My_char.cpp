@@ -13,8 +13,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "GranadeActor.h"
 #include "Components/SphereComponent.h"
-#include "Enemy.h"
-#include "MainUserWidget.h"
 
 // Sets default values
 AMy_char::AMy_char()
@@ -109,27 +107,10 @@ void AMy_char::BeginPlay()
 	Hp = MaxHp;
 	
 
-	if (mainWidget != nullptr)
-	{
-		//위젯 블루프린트를 생성한다.
-		mainwidget_inst = CreateWidget<UMainUserWidget>(GetWorld(), mainWidget);
-
-		if (mainwidget_inst != nullptr)
-		{
-			//생성자에 위젯 인스턴스를 뷰 포트에 표시
-			mainwidget_inst->AddToViewport();
-		}
-	}
-
-
 	// Collision Respawn 변경(충돌 방식 변경) // 우리가 만든 프리셋은 config에 있음 코드에선 GameTraceChannel로 해야됨 -> 1234 등 순서는 config보고 맞추면됨
 	//GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	//GetCapsuleComponent()->SetCollisionObjectType(ECC_Pawn);
 	//GetCapsuleComponent()->SetCollisionEnabled() // 콜리전 상태변경
-
-
-
-
 
 }
 
@@ -298,7 +279,7 @@ void AMy_char::ONThrow()
 		grande_inst->SphereCollision->SetSimulatePhysics(true);
 		grande_inst->SphereCollision->SetEnableGravity(true);
 		FVector Throwdir = (GetActorForwardVector() + GetActorUpVector()).GetSafeNormal();
-		grande_inst->SphereCollision->AddImpulse(Throwdir * 500);
+		grande_inst->SphereCollision->AddImpulse(Throwdir * 2000);
 	}
 	
 
@@ -355,24 +336,20 @@ void AMy_char::OnFireInput(const FInputActionValue& value)
 #pragma endregion
 
 #pragma region 3. 라인트레이스로 발사하기 - 싱글 (라인트레이스는 월드 기준으로 발사하기때문에 월드 기준의 백터 사용)
-	FHitResult hitInfo;
-	bool bhit = GetWorld()->LineTraceSingleByChannel(hitInfo, startLoc, endLoc, ECollisionChannel::ECC_Visibility, params);
+	//
+/*
+FHitResult hitInfo;
+bool bhit =  GetWorld()->LineTraceSingleByChannel(hitInfo, startLoc, endLoc, ECollisionChannel::ECC_Visibility,params);
 
-	if (bhit)
-	{
-		//UE_LOG(LogTemp, Warning, TEXT("%s"), *hitInfo.GetActor()->GetActorNameOrLabel());
-		AEnemy* enemy =  Cast<AEnemy>(hitInfo.GetActor());
-		if (enemy != nullptr)
-		{
-			enemy->OnDamager(atkdmg);
-			UE_LOG(LogTemp, Warning, TEXT("current enemy hp : %d"), enemy->GetCurrentHP());
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No hit"));
-	}
-
+if (bhit)
+{
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *hitInfo.GetActor()->GetActorNameOrLabel());
+}
+else
+{
+	UE_LOG(LogTemp, Warning, TEXT("No hit"));
+}
+*/
 #pragma endregion
 
 #pragma region 4. 라인트레이스 멀티
@@ -420,7 +397,6 @@ else
 #pragma endregion
 
 #pragma region 6. 콜리전 프로필을 사용한 방법
-	/*
 	FHitResult hitinfo;
 	if (GetWorld()->LineTraceSingleByProfile(hitinfo, startLoc, endLoc, FName("TestActor"), params))
 	{
@@ -430,7 +406,6 @@ else
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), hit_fx, hitinfo.ImpactPoint, FRotator::ZeroRotator, true);
 
 	}
-	*/
 
 #pragma endregion
 	UGameplayStatics::PlaySound2D(GetWorld(), fire_sound, 0.3f);
