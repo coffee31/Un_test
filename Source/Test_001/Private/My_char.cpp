@@ -105,7 +105,7 @@ void AMy_char::BeginPlay()
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("%s(%d)Copile Test"),*FString(__FUNCTION__),__LINE__);
-	UE_LOG(LogTemp, Warning, TEXT("Live Coding"));
+	UE_LOG(LogTemp, Warning, TEXT("merge test"));
 	Hp = MaxHp;
 	
 
