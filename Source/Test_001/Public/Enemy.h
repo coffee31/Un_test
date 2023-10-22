@@ -52,7 +52,7 @@ public:
 	float KnockBackRange = 50.0f;
 
 
-	UPROPERTY(EditAnywhere, Category = MySetting)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MySetting)
 	int32 maxHP = 100;
 
 	UPROPERTY(EditAnywhere, Category = MySetting)
@@ -64,15 +64,19 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE int32 GetCurrentHP() { return CurrentHP; };
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MySetting)// 사용자 정의 클래스를 언리얼에서 빠르게 읽어 들이기 위한 프로퍼티
+	class AMy_char* player;
 
-
-private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MySetting)
 	int32 CurrentHP = 0;
 
+private:
+	
+	
+	class UHPWidget* hpwidget;
 	FVector KnockBackLocation;
 
-	UPROPERTY() // 사용자 정의 클래스를 언리얼에서 빠르게 읽어 들이기 위한 프로퍼티
-	class AMy_char* player;
+
 
 	UPROPERTY() // 사용자 정의 클래스를 언리얼에서 빠르게 읽어 들이기 위한 프로퍼티
 	class ACharacter* bp_player;
@@ -88,6 +92,10 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	class UArrowComponent* ArrowComp;
+
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	class UWidgetComponent* WidgetComp;
+
 
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	float moveSpeed = 500.0f;

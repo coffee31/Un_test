@@ -14,7 +14,8 @@
 #include "GranadeActor.h"
 #include "Components/SphereComponent.h"
 #include "Enemy.h"
-#include "MainUserWidget.h"
+#include "DipGameModeBase.h"
+
 
 // Sets default values
 AMy_char::AMy_char()
@@ -28,7 +29,6 @@ AMy_char::AMy_char()
 	2. SetupAttachment -> 어느 컴포넌트에 해당 컴포넌트를 자식으로 넣을 것인지 (ex_ RootComponent<최상단 컴포넌트>)
 	3. TargetArmLength -> SpringArm의 거리 변수
 	4. 스켈레탈 메시 부분은 집가서 체크
-
 	*/
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -109,28 +109,10 @@ void AMy_char::BeginPlay()
 	Hp = MaxHp;
 	
 
-	if (mainWidget != nullptr)
-	{
-		//위젯 블루프린트를 생성한다.
-		mainwidget_inst = CreateWidget<UMainUserWidget>(GetWorld(), mainWidget);
-
-		if (mainwidget_inst != nullptr)
-		{
-			//생성자에 위젯 인스턴스를 뷰 포트에 표시
-			mainwidget_inst->AddToViewport();
-		}
-	}
-
-
 	// Collision Respawn 변경(충돌 방식 변경) // 우리가 만든 프리셋은 config에 있음 코드에선 GameTraceChannel로 해야됨 -> 1234 등 순서는 config보고 맞추면됨
 	//GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	//GetCapsuleComponent()->SetCollisionObjectType(ECC_Pawn);
 	//GetCapsuleComponent()->SetCollisionEnabled() // 콜리전 상태변경
-
-
-
-
-
 }
 
 // Called every frame
@@ -154,6 +136,11 @@ void AMy_char::Tick(float DeltaTime)
 	*/
 
 	Super::Tick(DeltaTime);
+
+	if (Hp <= 0)
+	{
+		return;
+	}
 
 	moveDir.Normalize();
 		
@@ -265,28 +252,48 @@ void AMy_char::OnRotateInput(const FInputActionValue& value)
 
 void AMy_char::DashON()
 {
+	if (Hp <= 0)
+	{
+		return;
+	}
 	GetCharacterMovement()->MaxWalkSpeed = 2400.0f;
 
 }
 void AMy_char::DashOFF()
 {
+	if (Hp <= 0)
+	{
+		return;
+	}
 	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 
 }
 
 void AMy_char::CrouchON()
 {
+	if (Hp <= 0)
+	{
+		return;
+	}
 	Crouch();
 	
 }
 
 void AMy_char::CrouchOFF()
 {
+	if (Hp <= 0)
+	{
+		return;
+	}
 	UnCrouch();
 }
 
 void AMy_char::ONThrow()
 {
+	if (Hp <= 0)
+	{
+		return;
+	}
 	//1. 수류탄 생성
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -306,13 +313,22 @@ void AMy_char::ONThrow()
 }
 
 void AMy_char::ZoomIn()
+
 {
+	if (Hp <= 0)
+	{
+		return;
+	}
 	SpringArmComp->TargetArmLength = -75.0f;
 	fov = 45.0f;
 }
 
 void AMy_char::ZoomOut()
 {
+	if (Hp <= 0)
+	{
+		return;
+	}
 	SpringArmComp->TargetArmLength = 500.0f;
 	fov = 90.0f;
 }
@@ -320,9 +336,17 @@ void AMy_char::ZoomOut()
 
 void AMy_char::OnFireInput(const FInputActionValue& value)
 {
+	if (Hp <= 0)
+	{
+		return;
+	}
 	// 기본 셋팅
-	FVector startLoc = GunMeshComp->GetSocketLocation(FName("Muzzle"));
-	FVector endLoc = startLoc + GunMeshComp->GetRightVector() * 1000.0f;
+	//FVector startLoc = GunMeshComp->GetSocketLocation(FName("Muzzle"));
+	//FVector endLoc = startLoc + GunMeshComp->GetRightVector() * 1000.0f;
+
+	FVector startLoc = CameraComp->GetComponentLocation() + CameraComp->GetForwardVector()* SpringArmComp->TargetArmLength;
+	FVector endLoc = startLoc + CameraComp->GetForwardVector() * 1000.0f;
+
 	FCollisionQueryParams params;
 	params.AddIgnoredActor(this);
 
@@ -366,6 +390,14 @@ void AMy_char::OnFireInput(const FInputActionValue& value)
 		{
 			enemy->OnDamager(atkdmg);
 			UE_LOG(LogTemp, Warning, TEXT("current enemy hp : %d"), enemy->GetCurrentHP());
+
+
+			/*
+			if (mainwidget_inst != nullptr && enemy->GetCurrentHP() <= 0)
+			{
+				mainwidget_inst->AddScore(1);
+			}
+			*/
 		}
 	}
 	else
@@ -457,6 +489,20 @@ else
 void AMy_char::DamagePlayer(int32 damage)
 {
 	Hp = FMath::Max(0, Hp - damage);
+
+	if (Hp <= 0)
+	{
+		ADipGameModeBase* gm = Cast<ADipGameModeBase>(GetWorld()->GetAuthGameMode());
+		if (gm != nullptr)
+		{
+			//게임 오버 위젯 출력
+			gm->LoadGameOverUI();
+
+		}
+
+
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
 //블루 프린트 노드로 사용할 함수

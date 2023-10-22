@@ -9,6 +9,9 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/ArrowComponent.h"
+#include "DipGameModeBase.h"
+#include "Components/WidgetComponent.h"
+#include "HPWidget.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -34,6 +37,12 @@ AEnemy::AEnemy()
 	
 	ArrowComp = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow Comp"));
 	ArrowComp->SetupAttachment(RootComponent);
+	WidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("Widget Comp"));
+	WidgetComp->SetupAttachment(RootComponent);
+	WidgetComp->SetRelativeLocation(FVector(0, 0, 100));
+	WidgetComp->SetDrawSize(FVector2D(300, 200));
+	WidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
+
 }
 
 // Called when the game starts or when spawned
@@ -67,6 +76,14 @@ void AEnemy::BeginPlay()
 				}
 			}
 		}
+	}
+
+	hpwidget = Cast<UHPWidget>(WidgetComp->GetWidget());
+	
+
+	if (hpwidget != nullptr)
+	{
+		hpwidget->SetOwnerName(GetActorNameOrLabel());
 	}
 
 	StartLotation = GetActorLocation();
@@ -109,6 +126,17 @@ void AEnemy::Tick(float DeltaTime)
 		break;
 	}
 
+	//현재 체력을 갱신;
+	if (hpwidget != nullptr)
+	{
+		hpwidget->SetHP(CurrentHP, maxHP);
+	}
+
+	if (enemyState == EEnemyState::RETURN)
+	{
+		CurrentHP = maxHP;
+
+	}
 }
 
 void AEnemy::OnDamager(int32 Damage)
@@ -119,11 +147,21 @@ void AEnemy::OnDamager(int32 Damage)
 	{
 		enemyState = EEnemyState::DIE;
 		DieAction();
+		ADipGameModeBase* GM = Cast<ADipGameModeBase>(GetWorld()->GetAuthGameMode());
+
+		if (GM != NULL)
+		{
+			GM->AddScore(1);
+		}
+		
 	}
 	else
 	{
 		KnockBackLocation = GetActorLocation() + GetActorForwardVector() * -1 * KnockBackRange;
-		enemyState = EEnemyState::HIT;
+		if (enemyState != EEnemyState::RETURN)
+			enemyState = EEnemyState::HIT;
+		else
+			enemyState = EEnemyState::RETURN;
 	}
 
 
@@ -257,6 +295,8 @@ void AEnemy::HitAction()
 		SetActorLocation(newLoc);
 	}
 
+
+
 	
 }
 
@@ -288,9 +328,6 @@ void AEnemy::ReRotate()
 		SetActorRotation(StartRotation);
 		enemyState = EEnemyState::IDLE;
 	}
-	
-	
-
 
 }
 
