@@ -15,3 +15,4 @@ void UHPWidget::SetHP(int32 curHp, int32 maxHp)
 {
 	pb_health->SetPercent((float)curHp / (float)maxHp);
 }
+

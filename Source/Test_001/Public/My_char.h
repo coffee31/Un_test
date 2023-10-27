@@ -95,6 +95,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	int32 MaxHp = 200;
 
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	class UWidgetComponent* WidgetComp;
 
 
 
@@ -120,7 +122,7 @@ private:
 	FRotator rotateAxis;
 	class APlayerController* pc;
 
-	
+	class UHPWidget* hpwidget;
 
 	float fov = 90.0f;
 

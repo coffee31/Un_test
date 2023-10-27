@@ -157,6 +157,14 @@ void AEnemy::OnDamager(int32 Damage)
 	}
 	else
 	{
+		//넉백
+		// 피격 애니메이션 몽타주 플레이
+		UAnimInstance* enemyAnimInstance = SkelMesh->GetAnimInstance();
+		if (enemyAnimInstance != nullptr)
+		{
+			enemyAnimInstance->Montage_Play(HitMontage);
+		}
+		
 		KnockBackLocation = GetActorLocation() + GetActorForwardVector() * -1 * KnockBackRange;
 		if (enemyState != EEnemyState::RETURN)
 			enemyState = EEnemyState::HIT;
@@ -259,13 +267,9 @@ void AEnemy::AttackAction()
 			return;
 		}
 		// 2. 상태 전환을 이용한 방법
-		enemyState = EEnemyState::ATTACKDELAY;
-		Attatcking();
+		//enemyState = EEnemyState::ATTACKDELAY;
+		//Attatcking();
 	}
-
-
-	 
-	
 
 }
 
@@ -285,7 +289,7 @@ void AEnemy::HitAction()
 {
 	FVector newLoc = FMath::Lerp(GetActorLocation(), KnockBackLocation, 0.3f);
 
-	if (FVector::Distance(newLoc, GetActorLocation()) < 5)
+	if (FVector::Distance(newLoc, KnockBackLocation) < 5)
 	{
 		//newLoc = GetActorLocation();
 		enemyState = EEnemyState::MOVE;
@@ -333,12 +337,15 @@ void AEnemy::ReRotate()
 
 void AEnemy::Attatcking()
 {
-	player->DamagePlayer(AttackPower);
-	UE_LOG(LogTemp, Warning, TEXT("Player C_HP : %d"), player->GetCurrentHP());
-
-	if (player->GetCurrentHP() <= 0)
+	if (player != nullptr)
 	{
-		enemyState = EEnemyState::RETURN;
+		player->DamagePlayer(AttackPower);
+		UE_LOG(LogTemp, Warning, TEXT("Player C_HP : %d"), player->GetCurrentHP());
+
+		if (player->GetCurrentHP() <= 0)
+		{
+			enemyState = EEnemyState::RETURN;
+		}
 	}
 }
 

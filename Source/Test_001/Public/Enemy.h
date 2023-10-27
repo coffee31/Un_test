@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "GameFramework/Pawn.h"
 #include "Enemy.generated.h"
 
 // 에너미 상태
 UENUM(BlueprintType)
-enum class EEnemyState
+enum class EEnemyState : uint8
 {
 	IDLE UMETA(DisplayName = "Idle State"),
 	MOVE,
@@ -27,7 +27,7 @@ enum class EEnemyState
 
 
 UCLASS()
-class TEST_001_API AEnemy : public AActor
+class TEST_001_API AEnemy : public APawn
 {
 	GENERATED_BODY()
 
@@ -70,9 +70,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MySetting)
 	int32 CurrentHP = 0;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MySetting)
+	class UAnimMontage* HitMontage;
+
+	UFUNCTION(BlueprintCallable)
+	void Attatcking();
+
 private:
-	
-	
+
 	class UHPWidget* hpwidget;
 	FVector KnockBackLocation;
 
@@ -104,7 +110,7 @@ private:
 	float AttackDistance = 150.0f;
 
 	UPROPERTY(EditAnywhere, Category = MySetting, meta=(AllowPrivateAccess = true))
-	float AttackPower = 100;
+	float AttackPower = 20;
 
 	float attackDelay = 0;
 
@@ -121,7 +127,9 @@ private:
 	void HitAction();
 	void DieAction();
 	void ReRotate();
-	void Attatcking();
+
+
+	
 
 	void DestroyProcess();
 };

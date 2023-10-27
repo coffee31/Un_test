@@ -15,6 +15,8 @@
 #include "Components/SphereComponent.h"
 #include "Enemy.h"
 #include "DipGameModeBase.h"
+#include "Components/WidgetComponent.h"
+#include "HPWidget.h"
 
 
 // Sets default values
@@ -68,6 +70,26 @@ AMy_char::AMy_char()
 
 	// Crouch 작동 할 수 있도록 설정
 	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
+
+	//위젯 컴포넌트
+	WidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("Widget Comp"));
+	WidgetComp->SetupAttachment(RootComponent);
+	WidgetComp->SetRelativeLocation(FVector(0, 0, 100));
+	WidgetComp->SetDrawSize(FVector2D(300, 200));
+	WidgetComp->SetWidgetSpace(EWidgetSpace::Screen);
+
+	
+
+	/*블루 프린트는 class 매쉬같은건 object
+	static ConstructorHelpers::FClassFinder<UHPWidget> ui_obj(TEXT("/Game/UI/CPP_Health.CPP_Health"));
+
+	if(ui_obj.Succeeded() && WidgetComp != nullptr)
+	{
+		WidgetComp->SetWidgetClass(ui_obj.Class);
+		WidgetComp->SetDrawSize(FVector2D(300, 200));
+		WidgetComp->SetRelativeLocation(FVector(0, 0, 100));
+	}
+	*/
 }
 
 
@@ -105,10 +127,19 @@ void AMy_char::BeginPlay()
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("%s(%d)Copile Test"),*FString(__FUNCTION__),__LINE__);
-	UE_LOG(LogTemp, Warning, TEXT("merge test"));
-	Hp = MaxHp;
+	UE_LOG(LogTemp, Warning, TEXT("혹시 모르니깐 테스트 10/27일"));
 	
 
+	//전역변수 선언
+	hpwidget = Cast<UHPWidget>(WidgetComp->GetWidget());
+
+
+	if (hpwidget != nullptr)
+	{
+		hpwidget->SetOwnerName(GetActorNameOrLabel());
+	}
+
+	Hp = MaxHp;
 	// Collision Respawn 변경(충돌 방식 변경) // 우리가 만든 프리셋은 config에 있음 코드에선 GameTraceChannel로 해야됨 -> 1234 등 순서는 config보고 맞추면됨
 	//GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	//GetCapsuleComponent()->SetCollisionObjectType(ECC_Pawn);
@@ -137,12 +168,27 @@ void AMy_char::Tick(float DeltaTime)
 
 	Super::Tick(DeltaTime);
 
+
+	if (hpwidget != nullptr)
+	{
+		hpwidget->SetHP(Hp, MaxHp);
+	}
+
+
+
 	if (Hp <= 0)
 	{
 		return;
 	}
 
+
+
 	moveDir.Normalize();
+
+	if (hpwidget != nullptr)
+	{
+		hpwidget->SetHP(Hp, MaxHp);
+	}
 		
 
 	//바라보는 방향으로 이동
@@ -345,7 +391,7 @@ void AMy_char::OnFireInput(const FInputActionValue& value)
 	//FVector endLoc = startLoc + GunMeshComp->GetRightVector() * 1000.0f;
 
 	FVector startLoc = CameraComp->GetComponentLocation() + CameraComp->GetForwardVector()* SpringArmComp->TargetArmLength;
-	FVector endLoc = startLoc + CameraComp->GetForwardVector() * 1000.0f;
+	FVector endLoc = startLoc + CameraComp->GetForwardVector() * 3000.0f;
 
 	FCollisionQueryParams params;
 	params.AddIgnoredActor(this);
@@ -496,6 +542,7 @@ void AMy_char::DamagePlayer(int32 damage)
 		if (gm != nullptr)
 		{
 			//게임 오버 위젯 출력
+
 			gm->LoadGameOverUI();
 
 		}
