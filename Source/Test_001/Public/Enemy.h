@@ -20,12 +20,6 @@ enum class EEnemyState : uint8
 };
 
 
-
-
-
-
-
-
 UCLASS()
 class TEST_001_API AEnemy : public APawn
 {
@@ -51,6 +45,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	float KnockBackRange = 50.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MySetting)
+	class AAIController* aicon;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MySetting)
 	int32 maxHP = 100;
@@ -70,9 +67,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MySetting)
 	int32 CurrentHP = 0;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MySetting)
+	class AActor* boxActor;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MySetting)
 	class UAnimMontage* HitMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MySetting)
+	class UAnimMontage* DeathMontage;
 
 	UFUNCTION(BlueprintCallable)
 	void Attatcking();
@@ -128,8 +131,7 @@ private:
 	void DieAction();
 	void ReRotate();
 
-
-	
-
 	void DestroyProcess();
+
+
 };
