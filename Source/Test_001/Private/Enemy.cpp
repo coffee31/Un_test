@@ -12,6 +12,8 @@
 #include "DipGameModeBase.h"
 #include "Components/WidgetComponent.h"
 #include "HPWidget.h"
+#include "AIController.h"
+
 
 // Sets default values
 AEnemy::AEnemy()
@@ -90,6 +92,8 @@ void AEnemy::BeginPlay()
 	StartRotation = GetActorRotation();
 	
 
+	//SetActorLocation(GetActorLocation() + dir * moveSpeed * GetWorld()->DeltaTimeSeconds, true);
+	aicon = GetController<AAIController>();
 
 	//체력
 	CurrentHP = maxHP;
@@ -164,13 +168,15 @@ void AEnemy::OnDamager(int32 Damage)
 		{
 			enemyAnimInstance->Montage_Play(HitMontage);
 		}
-		
+
+		// 히트 되는 순간 맞는방향으로 회전[추가해야됨]
 		KnockBackLocation = GetActorLocation() + GetActorForwardVector() * -1 * KnockBackRange;
 		if (enemyState != EEnemyState::RETURN)
 			enemyState = EEnemyState::HIT;
 		else
 			enemyState = EEnemyState::RETURN;
 	}
+	
 
 
 }
@@ -179,6 +185,7 @@ void AEnemy::IdleAction()
 {
 	//자신의 전방에 플레이어 체크
 	// 무브상태로 전환
+	target = player;
 
 	if (player != nullptr)
 	{
@@ -228,8 +235,11 @@ void AEnemy::MoveActiodn()
 		SetActorRotation(rotation);
 
 		// 이동
-		SetActorLocation(GetActorLocation() + dir * moveSpeed * GetWorld()->DeltaTimeSeconds);
-		
+		//SetActorLocation(GetActorLocation() + dir * moveSpeed * GetWorld()->DeltaTimeSeconds, true);
+		if (aicon != nullptr)
+		{
+			aicon->MoveToActor(target,AttackDistance);
+		}
 
 
 		// attack distance 까지 접근시 attack으로 변경
@@ -306,6 +316,11 @@ void AEnemy::HitAction()
 
 void AEnemy::DieAction()
 {
+	UAnimInstance* enemyAnimInstance = SkelMesh->GetAnimInstance();
+	if (enemyAnimInstance != nullptr)
+	{
+		enemyAnimInstance->Montage_Play(DeathMontage);
+	}
 	// 3초뒤 제거
 	FTimerHandle dieTimer;
 	//GetWorld()->GetTimerManager(); 액터가 존재해야함
@@ -353,4 +368,3 @@ void AEnemy::DestroyProcess()
 {
 	Destroy();
 }
-
