@@ -13,7 +13,10 @@
 #include "Components/WidgetComponent.h"
 #include "HPWidget.h"
 #include "AIController.h"
-
+#include "GameFramework/FloatingPawnMovement.h"
+#include "NavigationSystem.h"
+#include "NavigationPath.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -36,7 +39,7 @@ AEnemy::AEnemy()
 	}
 	
 
-	
+	pawnmovement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("Floating Pawn Movement"));
 	ArrowComp = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow Comp"));
 	ArrowComp->SetupAttachment(RootComponent);
 	WidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("Widget Comp"));
@@ -166,10 +169,20 @@ void AEnemy::OnDamager(int32 Damage)
 		UAnimInstance* enemyAnimInstance = SkelMesh->GetAnimInstance();
 		if (enemyAnimInstance != nullptr)
 		{
-			enemyAnimInstance->Montage_Play(HitMontage);
+			if(enemyState != EEnemyState::RETURN)
+				enemyAnimInstance->Montage_Play(HitMontage);
+		}
+		
+		if (enemyState != EEnemyState::RETURN)
+		{
+			FVector dir = target->GetActorLocation() - GetActorLocation();
+			dir.Z = 0;
+			dir.Normalize();
+
+			FRotator rotation = dir.ToOrientationRotator();
+			SetActorRotation(rotation);
 		}
 
-		// 히트 되는 순간 맞는방향으로 회전[추가해야됨]
 		KnockBackLocation = GetActorLocation() + GetActorForwardVector() * -1 * KnockBackRange;
 		if (enemyState != EEnemyState::RETURN)
 			enemyState = EEnemyState::HIT;
@@ -234,12 +247,36 @@ void AEnemy::MoveActiodn()
 		FRotator rotation = dir.ToOrientationRotator();
 		SetActorRotation(rotation);
 
+		
 		// 이동
 		//SetActorLocation(GetActorLocation() + dir * moveSpeed * GetWorld()->DeltaTimeSeconds, true);
-		if (aicon != nullptr)
+		if (aicon != nullptr && player->GetCurrentHP() > 0)
 		{
-			aicon->MoveToActor(target,AttackDistance);
+			UWorld* currentworld = GetWorld();
+
+			aicon->MoveToActor(target, targetDis);
+
+			//debug 라인을 이용해서 이동 루트를 시각화함
+			UNavigationSystemV1* nv1 = UNavigationSystemV1::GetCurrent(currentworld);
+			if (nv1 != nullptr)
+			{
+				
+				UNavigationPath* navPath = nv1->FindPathToLocationSynchronously(currentworld, GetActorLocation(), target->GetActorLocation());
+
+				if (navPath != nullptr)
+				{
+					TArray<FVector> points = navPath->PathPoints;
+
+					for (int32 i = 0; i < points.Num() - 1; i++)
+					{
+						DrawDebugLine(GetWorld(), points[i], points[i + 1], FColor::Red, false, 0, 0, 2.0f);
+
+						DrawDebugSphere(currentworld, points[i], 5, 12, FColor::Blue, false, 0, 0, 2.0f);
+					}
+				}
+			}
 		}
+
 
 
 		// attack distance 까지 접근시 attack으로 변경
@@ -299,7 +336,7 @@ void AEnemy::HitAction()
 {
 	FVector newLoc = FMath::Lerp(GetActorLocation(), KnockBackLocation, 0.3f);
 
-	if (FVector::Distance(newLoc, KnockBackLocation) < 5)
+	if (FVector::Distance(newLoc, KnockBackLocation) <= 20)
 	{
 		//newLoc = GetActorLocation();
 		enemyState = EEnemyState::MOVE;
@@ -339,12 +376,33 @@ void AEnemy::ReRotate()
 	FVector dir = StartLotation - GetActorLocation();
 	dir.Z = 0;
 	SetActorRotation(dir.ToOrientationRotator());
-	SetActorLocation(GetActorLocation() + dir.GetSafeNormal() * moveSpeed * GetWorld()->GetDeltaSeconds());
+	//SetActorLocation(GetActorLocation() + dir.GetSafeNormal() * moveSpeed * GetWorld()->GetDeltaSeconds());
+	if (aicon != nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("succeed!"));
+		FAIMoveRequest req = FAIMoveRequest(StartLotation);
 
-	if (dir.Length() < 10)
+		req.SetAcceptanceRadius(1.0f);
+		req.SetUsePathfinding(true);
+		req.SetProjectGoalLocation(false);
+		req.SetReachTestIncludesGoalRadius(true);
+		req.SetNavigationFilter(aicon->GetDefaultNavigationFilterClass());
+		req.SetCanStrafe(true);
+		req.SetAllowPartialPath(true);
+
+		aicon->MoveTo(req);
+		
+		//aicon->MoveToLocation(StartLotation);
+	}
+
+
+
+	if (dir.Length() < 100)
 	{
 		SetActorLocation(StartLotation);
 		SetActorRotation(StartRotation);
+		//네비게이션 이동을 멈춘다.
+		aicon->StopMovement();
 		enemyState = EEnemyState::IDLE;
 	}
 
