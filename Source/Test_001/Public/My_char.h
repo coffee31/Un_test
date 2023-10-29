@@ -47,6 +47,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	class UInputMappingContext* MyIMC_File;
 
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	class UPlayerFireComp* playerFireComp;
+
 
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	class UInputAction* ia_jump;
@@ -71,23 +74,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	class UInputAction* ia_Zoom;
-
-
-	UPROPERTY(EditAnywhere, Category = MySetting)
-	class UParticleSystem* hit_fx;
-
-	UPROPERTY(EditAnywhere, Category = MySetting)
-	class USoundBase* fire_sound;
-
-	UPROPERTY(EditAnywhere, Category = MySetting)
-	class UAnimMontage* Fire_motage;
-
-
-	UPROPERTY(EditAnywhere, Category = MySetting)
-	TSubclassOf<class AGranadeActor> Granade_bp;
-
-	UPROPERTY(EditAnywhere, Category = MySetting)
-	TSubclassOf<class UCameraShakeBase> Shake_bp;
 
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	TSubclassOf<class AActor> bullet_bp;
@@ -117,7 +103,7 @@ public:
 private:
 	//Transform 관련은 CoreMinimal.헤더에서 이미 class인지 struct인지 전방선언 되어있어 생략가능하지만 이 외에는 알 수 없기에 전방선언 해줘야함.
 	int32 Hp = 0;
-	int32 atkdmg = 10;
+
 
 	FRotator rotateAxis;
 	class APlayerController* pc;
@@ -134,11 +120,11 @@ private:
 	void DashOFF();
 	void CrouchON();
 	void CrouchOFF();
-	void ONThrow();
+
 	void ZoomIn();
 	void ZoomOut();
 
-	void OnFireInput(const struct FInputActionValue& value);
+
 
 	
 

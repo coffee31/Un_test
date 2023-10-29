@@ -50,8 +50,8 @@ public:
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = MySetting)
-	int32 maxHP = 100;
-
+	int32 maxHP = 500;
+	
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	class AActor* StartObject;
 
@@ -105,9 +105,15 @@ private:
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	class UWidgetComponent* WidgetComp;
 
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	class UFloatingPawnMovement* pawnmovement;
+
 
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	float moveSpeed = 500.0f;
+
+	UPROPERTY(EditAnywhere, Category = MySetting)
+	float targetDis = 50.0f;
 
 	UPROPERTY(EditAnywhere, Category = MySetting)
 	float AttackDistance = 150.0f;
@@ -122,6 +128,8 @@ private:
 
 	FVector StartLotation;
 	FRotator StartRotation;
+
+	
 
 	void IdleAction();
 	void MoveActiodn();
